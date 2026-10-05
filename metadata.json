@@ -1,0 +1,6 @@
+{
+  "name": "PC Resolve - Assistência Técnica e Manutenção em Informática",
+  "description": "Sistema completo para assistência técnica de computadores e notebooks em João Pessoa - PB, com website institucional, catálogo de serviços, painel administrativo, relatórios analíticos, perfil e configurações.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
