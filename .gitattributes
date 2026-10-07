@@ -1,0 +1,15 @@
+# O projeto é publicado em Linux (VPS) e a conferência do deploy compara o md5 do
+# arquivo local com o do servidor. Se o Git reescrever as quebras de linha para CRLF
+# ao fazer checkout no Windows, arquivos idênticos passam a ter hashes diferentes e a
+# conferência deixa de servir. Por isso: LF em todo arquivo de texto, nos dois lados.
+* text=auto eol=lf
+
+# Binários: nunca converter.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.gif  binary
+*.ico  binary
+*.woff  binary
+*.woff2 binary
