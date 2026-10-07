@@ -23,6 +23,7 @@ $menuItems = [
     ['key' => 'cidades', 'href' => '/painel/cidades', 'label' => 'Cidades & Leva e Traz', 'icon' => 'MapPin'],
     ['key' => 'depoimentos', 'href' => '/painel/depoimentos', 'label' => 'Depoimentos & Avaliações', 'icon' => 'MessageSquare'],
     ['key' => 'faq', 'href' => '/painel/faq', 'label' => 'Perguntas Frequentes (FAQ)', 'icon' => 'HelpCircle'],
+    ['key' => 'biblioteca', 'href' => '/painel/biblioteca', 'label' => 'Biblioteca de Mídia', 'icon' => 'Image'],
     ['key' => 'perfil', 'href' => '/painel/perfil', 'label' => 'Perfil do Usuário', 'icon' => 'User'],
     ['key' => 'configuracoes', 'href' => '/painel/configuracoes', 'label' => 'Configurações do Sistema', 'icon' => 'Settings'],
 ];

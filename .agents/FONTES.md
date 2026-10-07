@@ -5,7 +5,7 @@ description: Padrão de tipografia, tamanhos, cards, bordas, ícones, botões, t
 
 # Padrões do Painel Administrativo (fontes, tamanhos e formatações)
 
-Documento extraído de `views/layouts/admin.php` e das telas em `views/admin/` (login, dashboard, analytics, requests, services, cities, testimonials, faq, settings, profile).
+Documento extraído de `views/layouts/admin.php` e das telas em `views/admin/` (login, dashboard, analytics, requests, services, cities, testimonials, faq, settings, profile, media).
 
 Stack: PHP + Alpine.js + Tailwind CSS v4 (tema em `resources/css/app.css`, compilado para `public/assets/css/app.css`).
 Todos os valores abaixo são a escala padrão do Tailwind v4, em `px` (1rem = 16px).
@@ -326,7 +326,30 @@ Layouts de grade usados: KPI `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`; princi
 
 ---
 
-## 16. Inconsistências observadas (escolha uma antes de replicar)
+## 16. Galeria de imagens e seletor (Biblioteca de Mídia)
+
+Padrões da tela `views/admin/media.php`, reusados no seletor embutido em outras telas.
+
+| Elemento | Classes |
+|---|---|
+| Grade de miniaturas | `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4` |
+| Card de miniatura | `bg-white rounded-2xl border border-[#E4E7EC] shadow-2xs overflow-hidden flex flex-col group` |
+| Área da imagem | `relative block w-full aspect-square bg-[#F5F6F8] overflow-hidden` |
+| Imagem com zoom no hover | `w-full h-full object-cover transition-transform duration-300 group-hover:scale-105` |
+| Selo sobre a imagem | `absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold` + cor de estado |
+| Rodapé do card | `p-3 space-y-1.5`, nome `font-bold text-xs truncate`, metadados `text-[10px] font-mono-numbers` |
+| Miniatura em tabela | `w-12 h-12 rounded-lg overflow-hidden border border-[#E4E7EC] bg-[#F5F6F8]` |
+| Alternador de visão | trilho `flex items-center gap-1 p-1 bg-[#F5F6F8] rounded-xl border`, item `px-3 py-1.5 text-xs font-semibold rounded-lg`, ativo `bg-white text-[#D71920] shadow-2xs` |
+| Área de arrastar e soltar | `p-6 rounded-xl border-2 border-dashed`, inativa `border-[#E4E7EC] bg-[#F5F6F8]`, arrastando `border-[#D71920] bg-[#D71920]/5` |
+| Bloco de escolha de imagem (formulários) | `flex items-start gap-3 p-3 rounded-xl border border-[#E4E7EC] bg-[#F5F6F8]` com prévia `w-20 h-20 rounded-lg object-cover` |
+| Modal sobre outro modal | o de baixo `z-50`, o de cima `z-[60]` com `bg-black/60` |
+| Rolagem interna do seletor | `max-h-[22rem] overflow-y-auto` |
+
+Ícones acrescentados ao `app/Support/icons.php` para esta tela: `image`, `upload`, `layout-grid`, `list`, `unlink` (conteúdo interno dos SVGs do Lucide, mesmo padrão dos demais).
+
+---
+
+## 17. Inconsistências observadas (escolha uma antes de replicar)
 
 O painel não é 100% uniforme. Ao replicar, adote os valores dominantes abaixo:
 

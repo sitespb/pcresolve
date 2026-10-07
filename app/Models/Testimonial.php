@@ -22,6 +22,14 @@ final class Testimonial
         );
     }
 
+    /** @return array<string, mixed>|null */
+    public static function find(int $id): ?array
+    {
+        $row = Database::first('SELECT * FROM testimonials WHERE id = ?', [$id]);
+
+        return $row ? self::hydrate($row) : null;
+    }
+
     /** @param array<string, mixed> $data */
     public static function create(array $data): int
     {
@@ -36,6 +44,34 @@ final class Testimonial
             'approved' => 0, // Publicação somente após aprovação (requisito do PRD).
             'created_at' => now(),
         ]);
+    }
+
+    /**
+     * Edição do depoimento. Não mexe em "approved" de propósito: aprovar e
+     * ocultar continuam sendo ações próprias, com seus botões.
+     *
+     * @param array<string, mixed> $data
+     */
+    public static function update(int $id, array $data): bool
+    {
+        if (Database::value('SELECT 1 FROM testimonials WHERE id = ?', [$id]) === null) {
+            return false;
+        }
+
+        Database::update('testimonials', [
+            'author' => $data['author'],
+            'location' => $data['location'],
+            'rating' => max(1, min(5, (int) $data['rating'])),
+            'text' => $data['text'],
+            'service_title' => $data['service_title'],
+        ], ['id' => $id]);
+
+        return true;
+    }
+
+    public static function delete(int $id): void
+    {
+        Database::execute('DELETE FROM testimonials WHERE id = ?', [$id]);
     }
 
     public static function setApproved(int $id, bool $approved): bool

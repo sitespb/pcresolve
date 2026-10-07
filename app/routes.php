@@ -7,6 +7,7 @@ use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\CityController;
 use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\FaqController;
+use App\Controllers\Admin\MediaController;
 use App\Controllers\Admin\ProfileController;
 use App\Controllers\Admin\RequestController;
 use App\Controllers\Admin\ServiceController;
@@ -48,6 +49,7 @@ $router->group(['csrf'], function (Router $r): void {
         $r->get('/painel/solicitacoes', [RequestController::class, 'index']);
         $r->post('/painel/solicitacoes', [RequestController::class, 'store']);
         $r->post('/painel/solicitacoes/{id:\d+}', [RequestController::class, 'update']);
+        $r->post('/painel/solicitacoes/{id:\d+}/excluir', [RequestController::class, 'destroy']);
 
         $r->get('/painel/servicos', [ServiceController::class, 'index']);
         $r->post('/painel/servicos', [ServiceController::class, 'store']);
@@ -56,18 +58,27 @@ $router->group(['csrf'], function (Router $r): void {
         $r->post('/painel/servicos/{id:\d+}/excluir', [ServiceController::class, 'destroy']);
 
         $r->get('/painel/cidades', [CityController::class, 'index']);
+        $r->post('/painel/cidades', [CityController::class, 'store']);
+        $r->post('/painel/cidades/{id:\d+}', [CityController::class, 'update']);
         $r->post('/painel/cidades/{id:\d+}/status', [CityController::class, 'toggle']);
         $r->post('/painel/cidades/{id:\d+}/taxa', [CityController::class, 'fee']);
+        $r->post('/painel/cidades/{id:\d+}/excluir', [CityController::class, 'destroy']);
 
         $r->get('/painel/depoimentos', [TestimonialController::class, 'index']);
         $r->post('/painel/depoimentos', [TestimonialController::class, 'store']);
+        $r->post('/painel/depoimentos/{id:\d+}', [TestimonialController::class, 'update']);
         $r->post('/painel/depoimentos/{id:\d+}/aprovar', [TestimonialController::class, 'approve']);
         $r->post('/painel/depoimentos/{id:\d+}/ocultar', [TestimonialController::class, 'hide']);
+        $r->post('/painel/depoimentos/{id:\d+}/excluir', [TestimonialController::class, 'destroy']);
 
         $r->get('/painel/faq', [FaqController::class, 'index']);
         $r->post('/painel/faq', [FaqController::class, 'store']);
         $r->post('/painel/faq/{id:\d+}', [FaqController::class, 'update']);
         $r->post('/painel/faq/{id:\d+}/excluir', [FaqController::class, 'destroy']);
+
+        $r->get('/painel/biblioteca', [MediaController::class, 'index']);
+        $r->post('/painel/biblioteca', [MediaController::class, 'store']);
+        $r->post('/painel/biblioteca/excluir', [MediaController::class, 'destroy']);
 
         $r->get('/painel/perfil', [ProfileController::class, 'index']);
         $r->post('/painel/perfil', [ProfileController::class, 'update']);

@@ -37,6 +37,42 @@ final class City
         Database::update('cities', ['delivery_fee' => max(0, $fee)], ['id' => $id]);
     }
 
+    /** @param array<string, mixed> $data */
+    public static function create(array $data): int
+    {
+        return Database::insert('cities', [
+            'name' => $data['name'],
+            'coverage' => $data['coverage'],
+            'delivery_available' => !empty($data['delivery_available']) ? 1 : 0,
+            'delivery_fee' => max(0, (float) $data['delivery_fee']),
+            'notes' => $data['notes'] ?? '',
+            'active' => 1,
+            'sort_order' => ((int) Database::value('SELECT COALESCE(MAX(sort_order), 0) FROM cities')) + 1,
+        ]);
+    }
+
+    /** @param array<string, mixed> $data */
+    public static function update(int $id, array $data): bool
+    {
+        if (Database::value('SELECT 1 FROM cities WHERE id = ?', [$id]) === null) {
+            return false;
+        }
+
+        Database::update('cities', [
+            'name' => $data['name'],
+            'coverage' => $data['coverage'],
+            'delivery_available' => !empty($data['delivery_available']) ? 1 : 0,
+            'delivery_fee' => max(0, (float) $data['delivery_fee']),
+        ], ['id' => $id]);
+
+        return true;
+    }
+
+    public static function delete(int $id): void
+    {
+        Database::execute('DELETE FROM cities WHERE id = ?', [$id]);
+    }
+
     private static function hydrate(array $row): array
     {
         $row['id'] = (int) $row['id'];

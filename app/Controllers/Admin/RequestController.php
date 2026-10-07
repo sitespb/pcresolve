@@ -100,4 +100,17 @@ final class RequestController
         $back = preg_replace('/([?&])abrir=\d+&?/', '$1', $back) ?? $back;
         redirect(rtrim($back, '?&'));
     }
+
+    public function destroy(string $id): void
+    {
+        $lead = Lead::find((int) $id);
+        if ($lead === null) {
+            toast('Ordem de serviço não encontrada.', 'error');
+            redirect('/painel/solicitacoes');
+        }
+
+        Lead::delete((int) $lead['id']);
+        toast('Ordem de serviço ' . $lead['protocol'] . ' removida.', 'info');
+        redirect('/painel/solicitacoes');
+    }
 }

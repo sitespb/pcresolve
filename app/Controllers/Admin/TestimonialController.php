@@ -40,6 +40,47 @@ final class TestimonialController
         redirect('/painel/depoimentos');
     }
 
+    public function update(string $id): void
+    {
+        $depoimento = Testimonial::find((int) $id);
+        if ($depoimento === null) {
+            toast('Depoimento não encontrado.', 'error');
+            redirect('/painel/depoimentos');
+        }
+
+        $author = input_str('author', 150);
+        $text = input_str('text', 2000);
+
+        if ($author === '' || $text === '') {
+            toast('Informe o nome do cliente e o texto do depoimento.', 'warning');
+            redirect('/painel/depoimentos');
+        }
+
+        Testimonial::update((int) $id, [
+            'author' => $author,
+            'location' => input_str('location', 150),
+            'rating' => (int) input('rating', $depoimento['rating']),
+            'service_title' => input_str('service_title', 190),
+            'text' => $text,
+        ]);
+
+        toast('Depoimento atualizado com sucesso!');
+        redirect('/painel/depoimentos');
+    }
+
+    public function destroy(string $id): void
+    {
+        $depoimento = Testimonial::find((int) $id);
+        if ($depoimento === null) {
+            toast('Depoimento não encontrado.', 'error');
+            redirect('/painel/depoimentos');
+        }
+
+        Testimonial::delete((int) $id);
+        toast('Depoimento de "' . $depoimento['author'] . '" removido.', 'info');
+        redirect('/painel/depoimentos');
+    }
+
     public function approve(string $id): void
     {
         if (Testimonial::setApproved((int) $id, true)) {

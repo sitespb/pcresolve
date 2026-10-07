@@ -172,6 +172,162 @@
       };
     });
 
+    /**
+     * Biblioteca de mídia: alterna miniaturas/lista, filtra, busca, abre detalhes
+     * e prepara o envio (clique ou arrastar e soltar).
+     */
+    Alpine.data('mediaPage', function (cfg) {
+      cfg = cfg || {};
+      return {
+        view: cfg.view || 'miniaturas',
+        filter: cfg.filter || 'todas',
+        search: '',
+        rows: cfg.rows || [],
+        orphans: cfg.orphans || [],
+        items: cfg.items || [],
+        detail: null,
+        uploadOpen: false,
+        dragging: false,
+        sending: false,
+        chosen: [],
+        isVisible: function (i) {
+          var q = this.search.toLowerCase().trim();
+          if (q !== '' && String(this.rows[i] || '').indexOf(q) === -1) return false;
+          if (this.filter === 'orfas') return !!this.orphans[i];
+          if (this.filter === 'em-uso') return !this.orphans[i];
+          return true;
+        },
+        get visibleCount() {
+          var count = 0;
+          for (var i = 0; i < this.rows.length; i++) {
+            if (this.isVisible(i)) count++;
+          }
+          return count;
+        },
+        open: function (i) {
+          this.detail = this.items[i] || null;
+        },
+        pickFiles: function (event) {
+          this.chosen = Array.prototype.map.call(event.target.files || [], function (f) { return f.name; });
+        },
+        dropFiles: function (event) {
+          this.dragging = false;
+          var files = event.dataTransfer && event.dataTransfer.files;
+          if (!files || !files.length) return;
+          // Repassa os arquivos soltos para o input, para o formulário enviá-los.
+          this.$refs.uploadInput.files = files;
+          this.chosen = Array.prototype.map.call(files, function (f) { return f.name; });
+        },
+      };
+    });
+
+    /**
+     * Catálogo de serviços: busca, modais de criar/editar e escolha da imagem —
+     * do computador (envio junto com o formulário) ou da biblioteca de mídia
+     * (reaproveita um arquivo que já está no servidor).
+     */
+    Alpine.data('servicesPage', function (cfg) {
+      cfg = cfg || {};
+      return {
+        search: '',
+        rows: cfg.rows || [],
+        editing: null,
+        newOpen: !!cfg.newOpen,
+        media: cfg.media || [],
+        placeholder: cfg.placeholder || '',
+        // Seletor da biblioteca
+        pickerOpen: false,
+        pickerFor: 'new',
+        pickerQuery: '',
+        // Imagem do formulário de criação
+        newImage: '',
+        newPreview: null,
+        newFileName: '',
+        // Pré-visualização do arquivo escolhido no formulário de edição
+        editPreview: null,
+        editFileName: '',
+
+        edit: function (item) {
+          this.editing = JSON.parse(JSON.stringify(item));
+          this.editPreview = null;
+          this.editFileName = '';
+        },
+        isVisible: function (i) {
+          var q = this.search.toLowerCase().trim();
+          return q === '' || String(this.rows[i] || '').indexOf(q) !== -1;
+        },
+        get visibleCount() {
+          var count = 0;
+          for (var i = 0; i < this.rows.length; i++) {
+            if (this.isVisible(i)) count++;
+          }
+          return count;
+        },
+
+        /** Caminho/URL da imagem que o formulário está exibindo agora. */
+        previewUrl: function (target) {
+          if (target === 'edit') {
+            if (this.editPreview) return this.editPreview;
+            return this.editing && this.editing.image ? '/' + this.editing.image : this.placeholder;
+          }
+          if (this.newPreview) return this.newPreview;
+          return this.newImage ? '/' + this.newImage : this.placeholder;
+        },
+
+        openPicker: function (target) {
+          this.pickerFor = target;
+          this.pickerQuery = '';
+          this.pickerOpen = true;
+        },
+        /** Escolha da biblioteca: cancela um arquivo do computador que estivesse selecionado. */
+        choose: function (item) {
+          if (this.pickerFor === 'edit' && this.editing) {
+            this.editing.image = item.path;
+            this.editPreview = null;
+            this.editFileName = '';
+            if (this.$refs.editFile) this.$refs.editFile.value = '';
+          } else {
+            this.newImage = item.path;
+            this.newPreview = null;
+            this.newFileName = '';
+            if (this.$refs.newFile) this.$refs.newFile.value = '';
+          }
+          this.pickerOpen = false;
+        },
+        get pickerItems() {
+          var q = this.pickerQuery.toLowerCase().trim();
+          return this.media.filter(function (m) {
+            return q === '' || m.filename.toLowerCase().indexOf(q) !== -1;
+          });
+        },
+
+        /** Arquivo do computador: mostra a pré-visualização local antes de salvar. */
+        pickFile: function (event, target) {
+          var file = event.target.files && event.target.files[0];
+          if (!file) return;
+          var url = URL.createObjectURL(file);
+          if (target === 'edit') {
+            this.editPreview = url;
+            this.editFileName = file.name;
+          } else {
+            this.newPreview = url;
+            this.newFileName = file.name;
+          }
+        },
+        clearFile: function (target) {
+          if (target === 'edit') {
+            this.editPreview = null;
+            this.editFileName = '';
+            if (this.$refs.editFile) this.$refs.editFile.value = '';
+          } else {
+            this.newPreview = null;
+            this.newFileName = '';
+            if (this.$refs.newFile) this.$refs.newFile.value = '';
+          }
+        },
+      };
+    });
+
     /** Ordens de Serviço & Leads: busca instantânea, modal "Gerenciar" e nova O.S. */
     Alpine.data('requestsPage', function (cfg) {
       cfg = cfg || {};

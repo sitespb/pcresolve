@@ -124,6 +124,12 @@ $queryFor = fn (array $extra) => '/painel/solicitacoes?' . http_build_query(arra
                   <?= icon('Eye', 'w-3.5 h-3.5 text-[#D71920]') ?>
                   <span>Gerenciar</span>
                 </button>
+                <form method="post" action="/painel/solicitacoes/<?= (int) $lead['id'] ?>/excluir" class="inline-block" onsubmit="return confirm(<?= e(json_script('Excluir a ordem de serviço ' . $lead['protocol'] . ' de ' . $lead['customer_name'] . '? Esta ação não pode ser desfeita.')) ?>)">
+                  <?= csrf_field() ?>
+                  <button type="submit" class="inline-flex items-center justify-center p-1.5 rounded-md border border-[#E4E7EC] hover:bg-red-50 text-red-600 transition-colors cursor-pointer" title="Excluir ordem de serviço">
+                    <?= icon('Trash2', 'w-3.5 h-3.5') ?>
+                  </button>
+                </form>
               </td>
             </tr>
           <?php endforeach; ?>
