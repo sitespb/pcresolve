@@ -1,0 +1,12 @@
+# PC Resolve — usado apenas quando o DocumentRoot aponta para a raiz do projeto
+# (ex.: Laragon). No aaPanel, configure o "Running directory" como /public.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Sem mod_rewrite, nada da raiz deve ser exposto.
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>

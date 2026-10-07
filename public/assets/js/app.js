@@ -1,0 +1,215 @@
+/*
+ * PC Resolve — interações do site e do painel (Alpine.js).
+ * Carregado antes do Alpine (ambos com "defer"), para registrar stores e componentes.
+ */
+(function () {
+  'use strict';
+
+  /** Equivalente ao showToast() da versão React. */
+  window.toast = function (text, type) {
+    if (window.Alpine && window.Alpine.store('toasts')) {
+      window.Alpine.store('toasts').push(text, type || 'success');
+    } else {
+      (window.__TOASTS__ = window.__TOASTS__ || []).push({ text: text, type: type || 'success' });
+    }
+  };
+
+  /** Banner de cookies (LGPD). */
+  window.acceptCookies = function () {
+    var secure = location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = 'pcresolve_cookie_consent=true; Max-Age=31536000; Path=/; SameSite=Lax' + secure;
+    window.toast('Preferências de cookies salvas.', 'info');
+  };
+
+  document.addEventListener('alpine:init', function () {
+    var Alpine = window.Alpine;
+
+    Alpine.store('toasts', {
+      items: [],
+      push: function (text, type) {
+        var id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        this.items.push({ id: id, text: text, type: type || 'success' });
+        var self = this;
+        setTimeout(function () { self.remove(id); }, 4000);
+      },
+      remove: function (id) {
+        this.items = this.items.filter(function (t) { return t.id !== id; });
+      },
+    });
+
+    (window.__TOASTS__ || []).forEach(function (t) {
+      Alpine.store('toasts').push(t.text, t.type);
+    });
+    window.__TOASTS__ = [];
+
+    /** Formulários públicos de solicitação (validação igual à versão React). */
+    Alpine.data('leadForm', function (cfg) {
+      cfg = cfg || {};
+      return {
+        done: !!cfg.done,
+        consent: !!cfg.consent,
+        sending: false,
+        submit: function (event) {
+          var form = event.target;
+          var name = (form.elements.customer_name && form.elements.customer_name.value || '').trim();
+          var phone = (form.elements.phone && form.elements.phone.value || '').trim();
+
+          if (!name || !phone) {
+            event.preventDefault();
+            window.toast(cfg.missingMessage || 'Preencha nome e telefone.', 'warning');
+            return;
+          }
+          if (cfg.requireConsent && !this.consent) {
+            event.preventDefault();
+            window.toast(cfg.consentMessage || 'É necessário concordar com o tratamento dos dados.', 'warning');
+            return;
+          }
+          if (this.sending) {
+            event.preventDefault();
+            return;
+          }
+          this.sending = true;
+        },
+      };
+    });
+
+    /** Filtro do catálogo público de serviços (categoria + busca). */
+    Alpine.data('serviceFilter', function (index) {
+      var params = new URLSearchParams(location.search);
+      return {
+        index: index || [],
+        category: params.get('categoria') || 'todos',
+        query: params.get('busca') || '',
+        isVisible: function (i) {
+          var item = this.index[i];
+          if (!item) return false;
+          var matchesCategory = this.category === 'todos' || item.category === this.category;
+          var q = this.query.toLowerCase();
+          return matchesCategory && (q === '' || item.text.indexOf(q) !== -1);
+        },
+        get visibleCount() {
+          var count = 0;
+          for (var i = 0; i < this.index.length; i++) {
+            if (this.isVisible(i)) count++;
+          }
+          return count;
+        },
+      };
+    });
+
+    /** Foto de perfil: arrastar e soltar, pré-visualização e envio automático. */
+    Alpine.data('avatarUpload', function (cfg) {
+      cfg = cfg || {};
+      return {
+        dragging: false,
+        sending: false,
+        preview: null,
+        drop: function (event) {
+          this.dragging = false;
+          var file = event.dataTransfer && event.dataTransfer.files[0];
+          if (!file) return;
+          // Repassa o arquivo solto para o input, para o formulário enviá-lo.
+          var dt = new DataTransfer();
+          dt.items.add(file);
+          this.$refs.input.files = dt.files;
+          this.pick(file);
+        },
+        pick: function (file) {
+          if (!file) return;
+
+          var ext = (file.name.split('.').pop() || '').toLowerCase();
+          if (ext === 'jpeg') ext = 'jpg';
+          if ((cfg.accept || []).indexOf(ext) === -1) {
+            window.toast('Formato não permitido. Envie ' + (cfg.formatsLabel || 'JPG') + '.', 'warning');
+            this.reset();
+            return;
+          }
+
+          var maxBytes = (cfg.maxUploadKb || 8192) * 1024;
+          if (file.size > maxBytes) {
+            window.toast('Arquivo muito grande. O limite é de ' + Math.round(maxBytes / 1024) + ' KB.', 'warning');
+            this.reset();
+            return;
+          }
+
+          this.preview = URL.createObjectURL(file);
+          this.sending = true;
+          this.$refs.form.submit();
+        },
+        reset: function () {
+          this.$refs.input.value = '';
+          this.preview = null;
+          this.sending = false;
+        },
+      };
+    });
+
+    /**
+     * Telas de cadastro do painel (serviços, cidades, depoimentos, FAQ):
+     * busca instantânea + modal de edição + modal de criação.
+     */
+    Alpine.data('crudPage', function (cfg) {
+      cfg = cfg || {};
+      return {
+        search: '',
+        rows: cfg.rows || [],
+        editing: null,
+        newOpen: !!cfg.newOpen,
+        edit: function (item) {
+          this.editing = JSON.parse(JSON.stringify(item));
+        },
+        isVisible: function (i) {
+          var q = this.search.toLowerCase().trim();
+          return q === '' || String(this.rows[i] || '').indexOf(q) !== -1;
+        },
+        get visibleCount() {
+          var count = 0;
+          for (var i = 0; i < this.rows.length; i++) {
+            if (this.isVisible(i)) count++;
+          }
+          return count;
+        },
+      };
+    });
+
+    /** Ordens de Serviço & Leads: busca instantânea, modal "Gerenciar" e nova O.S. */
+    Alpine.data('requestsPage', function (cfg) {
+      cfg = cfg || {};
+      return {
+        search: cfg.search || '',
+        rows: cfg.rows || [],
+        active: null,
+        newOpen: !!cfg.newOpen,
+        form: { status: 'pendente', budget: 0, notes: '' },
+        init: function () {
+          if (cfg.openLead) this.open(cfg.openLead);
+        },
+        open: function (lead) {
+          this.form.status = lead.status;
+          this.form.budget = lead.budget || 0;
+          this.form.notes = lead.internal_notes || '';
+          this.active = lead;
+        },
+        isVisible: function (i) {
+          var q = this.search.toLowerCase().trim();
+          return q === '' || String(this.rows[i] || '').indexOf(q) !== -1;
+        },
+        get visibleCount() {
+          var count = 0;
+          for (var i = 0; i < this.rows.length; i++) {
+            if (this.isVisible(i)) count++;
+          }
+          return count;
+        },
+        /** Mensagem de atualização igual à da versão React. */
+        get notifyUrl() {
+          if (!this.active) return '#';
+          var budget = Number(this.form.budget || 0).toFixed(2);
+          var message = 'Olá ' + this.active.customer_name + '! Atualização da OS ' + this.active.protocol +
+            ': Seu equipamento está com status [' + String(this.form.status).toUpperCase() + ']. Valor do serviço: R$ ' + budget + '.';
+          return 'https://wa.me/55' + String(this.active.phone).replace(/\D/g, '') + '?text=' + encodeURIComponent(message);
+        },
+      };
+    });
+  });
+})();

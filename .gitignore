@@ -1,8 +1,21 @@
+# Dependências de build (apenas para compilar o CSS; não vão para o servidor)
 node_modules/
-build/
-dist/
-coverage/
-.DS_Store
-*.log
-.env*
+
+# Configuração local / segredos
+.env
+.env.*
 !.env.example
+
+# Dados de infraestrutura (IP da VPS, usuário SSH, caminho da chave, painel aaPanel).
+# Fora do repositório enquanto a visibilidade dele (público/privado) não for confirmada.
+.agents/CONEXAO.md
+
+# Arquivos gerados em tempo de execução
+storage/logs/*
+!storage/logs/.gitignore
+storage/sessions/*
+!storage/sessions/.gitignore
+*.log
+
+.DS_Store
+Thumbs.db
